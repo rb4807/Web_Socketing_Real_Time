@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ticker WebSocket Demo</title>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const ticker = document.getElementById('ticker').value;
+            const output = document.getElementById('output');
+            let ws;
+            
+            document.getElementById('connect').addEventListener('click', function() {
+                const ticker = document.getElementById('ticker').value;
+                output.innerHTML = 'Connecting to ' + ticker + '...';
+                
+                // Close existing connection if any
+                if (ws) {
+                    ws.close();
+                }
+                
+                // Connect to the WebSocket server
+                ws = new WebSocket(`ws://localhost:8000/ws/trades/${ticker}`);
+                
+                ws.onopen = function() {
+                    output.innerHTML += '<br>Connected!';
+                };
+                
+                ws.onmessage = function(e) {
+                    const data = JSON.parse(e.data);
+                    output.innerHTML += '<br>' + JSON.stringify(data);
+                    
+                    // Keep only the last 20 entries
+                    const lines = output.innerHTML.split('<br>');
+                    if (lines.length > 20) {
+                        output.innerHTML = lines.slice(lines.length - 20).join('<br>');
+                    }
+                };
+                
+                ws.onclose = function() {
+                    output.innerHTML += '<br>Connection closed';
+                };
+                
+                ws.onerror = function(e) {
+                    output.innerHTML += '<br>Error: ' + e.message;
+                };
+            });
+            
+            document.getElementById('disconnect').addEventListener('click', function() {
+                if (ws) {
+                    ws.close();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Ticker WebSocket Demo</h1>
+    <div>
+        <input id="ticker" type="text" value="AAPL" placeholder="Enter ticker symbol">
+        <button id="connect">Connect</button>
+        <button id="disconnect">Disconnect</button>
+    </div>
+    <div>
+        <h3>Messages:</h3>
+        <pre id="output" style="height: 300px; overflow-y: scroll; background-color: #f0f0f0; padding: 10px;"></pre>
+    </div>
+</body>
+</html>
