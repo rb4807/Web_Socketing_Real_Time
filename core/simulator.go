@@ -4,17 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
-	"strings" 
+	"log"
 )
 
 // TradeData represents trade information
 type TradeData struct {
-	Ticker    string    `json:"ticker"`
-	Price     float64   `json:"price"`
-	Volume    float64   `json:"volume"`
-	Timestamp time.Time `json:"timestamp"`
+	Ticker         string    `json:"ticker"`
+	Price          float64   `json:"price"`
+	Volume         float64   `json:"volume"`
+	Timestamp      time.Time `json:"timestamp"`
+	ProducerID     string    `json:"producer_id"`
+	SequenceNumber int64     `json:"seq_num"`
+	ConsumerCount  int       `json:"consumer_count"`
 }
+
+var sequenceNumber int64 = 0
+var producerID = fmt.Sprintf("producer-%d", time.Now().Unix())
 
 // StartSimulation begins simulating trade data for testing
 func StartSimulation() {
@@ -26,6 +33,8 @@ func StartSimulation() {
 		// Random starting price between 50 and 500
 		tickerPrices[ticker] = 50 + rand.Float64()*450
 	}
+	
+	log.Printf("Starting trade simulator with producer ID: %s", producerID)
 	
 	// Start a goroutine to generate trades
 	go func() {
@@ -39,24 +48,38 @@ func StartSimulation() {
 				// Update base price
 				tickerPrices[ticker] = newPrice
 				
-				// Create trade data
-				trade := TradeData{
-					Ticker:    ticker,
-					Price:     newPrice,
-					Volume:    rand.Float64() * 1000,
-					Timestamp: time.Now(),
-				}
+				// Get number of consumers for this ticker
+				topic := fmt.Sprintf("trades-%s", strings.ToLower(ticker))
+				consumerCount := Bus.GetConsumerCount(topic)
 				
-				// Convert to JSON
-				tradeJSON, err := json.Marshal(trade)
-				if err != nil {
-					fmt.Println("Error marshalling trade data:", err)
-					continue
+				// Only generate data if there are consumers
+				if consumerCount > 0 {
+					sequenceNumber++
+					
+					// Create trade data
+					trade := TradeData{
+						Ticker:         ticker,
+						Price:          newPrice,
+						Volume:         rand.Float64() * 1000,
+						Timestamp:      time.Now(),
+						ProducerID:     producerID,
+						SequenceNumber: sequenceNumber,
+						ConsumerCount:  consumerCount,
+					}
+					
+					// Convert to JSON
+					tradeJSON, err := json.Marshal(trade)
+					if err != nil {
+						fmt.Println("Error marshalling trade data:", err)
+						continue
+					}
+					
+					// Publish to message bus and get delivery count
+					deliveries := Bus.Publish(topic, tradeJSON)
+					
+					log.Printf("Published trade #%d for %s to %d/%d consumers", 
+						sequenceNumber, ticker, deliveries, consumerCount)
 				}
-				
-				// Publish to message bus
-				topicName := fmt.Sprintf("trades-%s", strings.ToLower(ticker))
-				Bus.Publish(topicName, tradeJSON)
 			}
 			
 			// Sleep for a random interval (100-1000ms)

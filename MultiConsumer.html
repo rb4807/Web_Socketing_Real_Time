@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Stream Dashboard</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <style>
+        :root {
+            --primary: #6e45e2;
+            --secondary: #88d3ce;
+            --accent: #ff7e5f;
+            --dark: #0f0e1a;
+            --glass: rgba(255, 255, 255, 0.08);
+            --success: #4caf50;
+            --error: #f44336;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 10% 20%, var(--dark) 0%, #1a1a2e 90%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: white;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(110, 69, 226, 0.1) 0%, transparent 70%);
+            animation: pulse 15s infinite alternate;
+            z-index: -1;
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(0, 0); }
+            50% { transform: translate(50px, 50px); }
+            100% { transform: translate(-50px, -50px); }
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+            font-size: 2.5rem;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Controls Panel */
+        .control-panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .control-panel:hover {
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .input-field input {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-field input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(110, 69, 226, 0.3);
+        }
+
+        .input-field label {
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            background: var(--dark);
+            padding: 0 8px;
+            font-size: 0.8rem;
+            color: var(--secondary);
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.5s;
+        }
+
+        .btn:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #8a63e8);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #4a6bff, #6e45e2);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff5f6d, #ff7e5f);
+            color: white;
+        }
+
+        .btn-icon {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Clients Grid */
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .client-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .client-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .client-header {
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .client-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .client-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--error);
+            box-shadow: 0 0 10px var(--error);
+        }
+
+        .client-status.connected {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+        }
+
+        .close-btn {
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 5px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: var(--error);
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(90deg);
+        }
+
+        .client-body {
+            height: 200px;
+            overflow-y: auto;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* Custom scrollbar */
+        .client-body::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .client-body::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+
+        .client-body::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--secondary));
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            animation: fadeIn 0.3s ease-out;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.7rem;
+            margin-right: 5px;
+        }
+
+        .message-success {
+            color: var(--success);
+        }
+
+        .message-error {
+            color: var(--error);
+        }
+
+        .message-data {
+            color: var(--secondary);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .control-group {
+                flex-direction: column;
+            }
+            
+            .input-field, .btn {
+                width: 100%;
+            }
+            
+            .client-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Multi-Stream Dashboard</h1>
+        
+        <div class="control-panel">
+            <div class="control-group">
+                <div class="input-field">
+                    <label for="ticker">Ticker Symbol</label>
+                    <input id="ticker" type="text" value="AAPL" placeholder="e.g. AAPL, MSFT, BTC-USD">
+                </div>
+                
+                <div class="input-field">
+                    <label for="client-count">Client Count</label>
+                    <input id="client-count" type="number" value="1" min="1" max="20">
+                </div>
+                
+                <button id="add-client" class="btn btn-primary">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Client
+                </button>
+                
+                <button id="add-multiple" class="btn btn-secondary">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    Add Multiple
+                </button>
+                
+                <button id="close-all" class="btn btn-danger">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Close All
+                </button>
+            </div>
+        </div>
+        
+        <div class="stats-panel" id="stats">
+            <div class="stat-card">
+                <h3>Active Clients</h3>
+                <div class="stat-value" id="active-count">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Messages</h3>
+                <div class="stat-value" id="total-messages">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Stream Speed</h3>
+                <div class="stat-value" id="stream-speed">0/s</div>
+            </div>
+            <div class="stat-card">
+                <h3>Connected Since</h3>
+                <div class="stat-value" id="uptime">00:00:00</div>
+            </div>
+        </div>
+        
+        <div class="client-grid" id="client-container">
+            <!-- Client cards will be added here dynamically -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const clients = {};
+            let clientCounter = 0;
+            let totalMessages = 0;
+            let lastUpdateTime = Date.now();
+            let messagesPerSecond = 0;
+            let messageCountSinceLastUpdate = 0;
+            let startTime = Date.now();
+            
+            // Create floating particles
+            function createParticles() {
+                const particles = 20;
+                for (let i = 0; i < particles; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    
+                    const size = Math.random() * 5 + 2;
+                    const posX = Math.random() * window.innerWidth;
+                    const posY = Math.random() * window.innerHeight;
+                    const opacity = Math.random() * 0.3 + 0.1;
+                    const duration = Math.random() * 20 + 10;
+                    
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.left = `${posX}px`;
+                    particle.style.top = `${posY}px`;
+                    particle.style.opacity = opacity;
+                    particle.style.animation = `float ${duration}s linear infinite`;
+                    
+                    document.body.appendChild(particle);
+                    
+                    const keyframes = `
+                        @keyframes float {
+                            0% { transform: translate(0, 0); }
+                            50% { transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px); }
+                            100% { transform: translate(0, 0); }
+                        }
+                    `;
+                    
+                    const style = document.createElement('style');
+                    style.innerHTML = keyframes;
+                    document.head.appendChild(style);
+                }
+            }
+            
+            createParticles();
+            
+            // Format time duration
+            function formatDuration(ms) {
+                const seconds = Math.floor((ms / 1000) % 60);
+                const minutes = Math.floor((ms / (1000 * 60)) % 60);
+                const hours = Math.floor((ms / (1000 * 60 * 60)) % 24);
+                
+                return [
+                    hours.toString().padStart(2, '0'),
+                    minutes.toString().padStart(2, '0'),
+                    seconds.toString().padStart(2, '0')
+                ].join(':');
+            }
+            
+            // Update statistics
+            function updateStats() {
+                const now = Date.now();
+                const elapsed = now - lastUpdateTime;
+                
+                if (elapsed >= 1000) {
+                    messagesPerSecond = Math.round((messageCountSinceLastUpdate * 1000) / elapsed);
+                    messageCountSinceLastUpdate = 0;
+                    lastUpdateTime = now;
+                }
+                
+                let activeCount = 0;
+                const messagesByTicker = {};
+                
+                for (const id in clients) {
+                    if (clients[id].connected) {
+                        activeCount++;
+                        
+                        const ticker = clients[id].ticker;
+                        messagesByTicker[ticker] = (messagesByTicker[ticker] || 0) + clients[id].messageCount;
+                    }
+                }
+                
+                document.getElementById('active-count').textContent = activeCount;
+                document.getElementById('total-messages').textContent = totalMessages;
+                document.getElementById('stream-speed').textContent = `${messagesPerSecond}/s`;
+                document.getElementById('uptime').textContent = formatDuration(now - startTime);
+            }
+            
+            // Create a new client
+            function createClient(ticker) {
+                const clientId = clientCounter++;
+                const clientCard = document.createElement('div');
+                clientCard.className = 'client-card';
+                clientCard.id = `client-${clientId}`;
+                
+                clientCard.innerHTML = `
+                    <div class="client-header">
+                        <div class="client-title">
+                            <span class="client-status"></span>
+                            Client #${clientId} (${ticker})
+                        </div>
+                        <div class="close-btn" onclick="closeClient(${clientId})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="client-body" id="client-body-${clientId}"></div>
+                `;
+                
+                document.getElementById('client-container').appendChild(clientCard);
+                
+                // Connect to WebSocket
+                const ws = new WebSocket(`ws://localhost:8000/ws/trades/${ticker}`);
+                clients[clientId] = {
+                    ws: ws,
+                    ticker: ticker,
+                    messageCount: 0,
+                    connected: false,
+                    connectedAt: null,
+                    lastMsgTime: null
+                };
+                
+                // WebSocket event handlers
+                ws.onopen = function() {
+                    clients[clientId].connected = true;
+                    clients[clientId].connectedAt = new Date();
+                    
+                    const statusIndicator = document.querySelector(`#client-${clientId} .client-status`);
+                    if (statusIndicator) {
+                        statusIndicator.classList.add('connected');
+                    }
+                    
+                    addMessage(clientId, "Connected to server", 'success');
+                    updateStats();
+                };
+                
+                ws.onmessage = function(e) {
+                    clients[clientId].messageCount++;
+                    clients[clientId].lastMsgTime = new Date();
+                    totalMessages++;
+                    messageCountSinceLastUpdate++;
+                    
+                    try {
+                        const data = JSON.parse(e.data);
+                        addMessage(clientId, `${data.ticker}: $${data.price.toFixed(2)} (Vol: ${data.volume.toFixed(2)})`, 'data');
+                    } catch(err) {
+                        addMessage(clientId, e.data);
+                    }
+                    
+                    updateStats();
+                };
+                
+                ws.onclose = function() {
+                    clients[clientId].connected = false;
+                    
+                    const statusIndicator = document.querySelector(`#client-${clientId} .client-status`);
+                    if (statusIndicator) {
+                        statusIndicator.classList.remove('connected');
+                    }
+                    
+                    addMessage(clientId, "Disconnected from server", 'error');
+                    updateStats();
+                };
+                
+                ws.onerror = function(e) {
+                    addMessage(clientId, `Error: ${e.message || 'Connection error'}`, 'error');
+                };
+                
+                return clientId;
+            }
+            
+            // Add message to client
+            function addMessage(clientId, message, type = 'info') {
+                const bodyDiv = document.getElementById(`client-body-${clientId}`);
+                if (!bodyDiv) return;
+                
+                const now = new Date();
+                const timestamp = now.toLocaleTimeString();
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = 'message';
+                
+                let messageClass = '';
+                if (type === 'success') messageClass = 'message-success';
+                if (type === 'error') messageClass = 'message-error';
+                if (type === 'data') messageClass = 'message-data';
+                
+                msgDiv.innerHTML = `
+                    <span class="message-time">[${timestamp}]</span>
+                    <span class="${messageClass}">${message}</span>
+                `;
+                
+                bodyDiv.appendChild(msgDiv);
+                
+                // Keep only the last 30 messages
+                if (bodyDiv.children.length > 30) {
+                    bodyDiv.removeChild(bodyDiv.children[0]);
+                }
+                
+                // Auto-scroll to bottom
+                bodyDiv.scrollTop = bodyDiv.scrollHeight;
+            }
+            
+            // Close client connection
+            window.closeClient = function(clientId) {
+                if (clients[clientId]) {
+                    if (clients[clientId].connected) {
+                        clients[clientId].ws.close();
+                    }
+                    
+                    delete clients[clientId];
+                    
+                    const clientCard = document.getElementById(`client-${clientId}`);
+                    if (clientCard) {
+                        clientCard.classList.add('fade-out');
+                        setTimeout(() => {
+                            clientCard.parentNode.removeChild(clientCard);
+                        }, 300);
+                    }
+                    
+                    updateStats();
+                }
+            };
+            
+            // Event listeners
+            document.getElementById('add-client').addEventListener('click', function() {
+                const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+                if (ticker) {
+                    createClient(ticker);
+                }
+            });
+            
+            document.getElementById('add-multiple').addEventListener('click', function() {
+                const ticker = document.getElementById('ticker').value.trim().toUpperCase();
+                const count = parseInt(document.getElementById('client-count').value) || 1;
+                
+                if (ticker && count > 0) {
+                    for (let i = 0; i < count; i++) {
+                        createClient(ticker);
+                    }
+                }
+            });
+            
+            document.getElementById('close-all').addEventListener('click', function() {
+                for (const id in clients) {
+                    window.closeClient(id);
+                }
+            });
+            
+            // Allow pressing Enter in the input field to add client
+            document.getElementById('ticker').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('add-client').click();
+                }
+            });
+            
+            // Update stats periodically
+            setInterval(updateStats, 1000);
+        });
+    </script>
+</body>
+</html>
